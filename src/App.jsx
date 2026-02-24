@@ -17,7 +17,20 @@ let _extensionId = null
 async function resolveExtensionId() {
   if (_extensionId) return _extensionId
 
-  // Method 1: read ID that background.js stored on startup
+  // Method 1: env var set at build time (most reliable for production)
+  const envId = import.meta.env.VITE_EXTENSION_ID
+  if (envId) {
+    _extensionId = envId
+    return _extensionId
+  }
+
+  // Method 2: injected by content script on page load
+  if (window.__focuslockId) {
+    _extensionId = window.__focuslockId
+    return _extensionId
+  }
+
+  // Method 3: chrome.storage (only works on extension pages, not external sites)
   if (typeof chrome !== 'undefined' && chrome?.storage?.local) {
     try {
       const data = await chrome.storage.local.get('focuslock_extension_id')
@@ -26,12 +39,6 @@ async function resolveExtensionId() {
         return _extensionId
       }
     } catch {}
-  }
-
-  // Method 2: try window.__focuslockId injected by content script
-  if (window.__focuslockId) {
-    _extensionId = window.__focuslockId
-    return _extensionId
   }
 
   return null
