@@ -1048,16 +1048,14 @@ export default function App() {
     } catch { }
   }, [])
 
-  // Tab visibility detection (webapp-level, WITHOUT extension only)
-  // If extension is installed it already reports tab switches — skip to avoid double count
+  // Tab visibility detection — only when extension is NOT installed
+  // Extension handles tab switches via onActivated, so we skip here if installed
   useEffect(() => {
     if (screen !== 'focus') return
-    if (extensionInstalled) return  // extension handles this — don't double count
+    if (extensionInstalled) return
 
     const handleVisibility = () => {
-      if (document.hidden) {
-        // Record when they left
-      } else {
+      if (!document.hidden) {
         triggerViolation(window.location.href, 'tab_switch')
       }
     }
@@ -1096,6 +1094,10 @@ export default function App() {
     // Tell extension
     writeSessionToStorage(newSession)
     sendToExtension('START_SESSION', { session: newSession })
+
+    // Open the allowed URL in the current tab
+    const targetUrl = config.allowedUrl.includes('://') ? config.allowedUrl : 'https://' + config.allowedUrl
+    window.location.href = targetUrl
   }
 
   const endSession = () => {
