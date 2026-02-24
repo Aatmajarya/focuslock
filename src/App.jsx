@@ -1066,7 +1066,7 @@ export default function App() {
 
   const triggerViolation = useCallback((url, reason) => {
     const now = Date.now()
-    if (now - lastViolationTime.current < 500) return // dedup: ignore if within 500ms
+    if (now - lastViolationTime.current < 2000) return // dedup: ignore if within 2 seconds
     lastViolationTime.current = now
 
     setViolations(prev => {
