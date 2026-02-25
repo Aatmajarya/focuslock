@@ -957,7 +957,7 @@ function RoastModal({ violationCount, onClose }) {
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [screen, setScreen] = useState('setup') // 'setup' | 'focus' | 'summary'
+  const [screen, setScreen] = useState('setup') // 'splash' | 'landing' | 'setup' | 'focus' | 'summary'
   const [extensionInstalled, setExtensionInstalled] = useState(null) // null = checking
   const [session, setSession] = useState(null)
   const [violations, setViolations] = useState([])
@@ -1000,9 +1000,14 @@ export default function App() {
       setViolations(savedViolations || [])
       setScreen('summary')
     }
-    // else: fresh load — show landing page
+    // else: fresh load — show splash on first ever visit, landing on subsequent
     else {
-      setScreen("landing")
+      const hasVisited = localStorage.getItem('focuslock_visited')
+      if (!hasVisited) {
+        setScreen('splash')
+      } else {
+        setScreen('landing')
+      }
     }
 
     setRestored(true)
@@ -1137,6 +1142,11 @@ export default function App() {
 
   // Don't render until we've checked localStorage — prevents flash of setup screen
   if (!restored) return null
+
+  if (screen === 'splash') return <SplashScreen onNext={() => {
+    localStorage.setItem('focuslock_visited', '1')
+    setScreen('landing')
+  }} />
 
   return (
     <>
@@ -2591,6 +2601,134 @@ function LandingScreen({ extensionInstalled, onTryIt }) {
         <div>Built with React + Chrome Extension API</div>
         <div><a href="https://github.com" target="_blank" rel="noreferrer">GitHub ↗</a></div>
       </footer>
+    </div>
+  )
+}
+
+// ─── Splash Screen ────────────────────────────────────────────────────────────
+
+function SplashScreen({ onNext }) {
+  const [visible, setVisible] = useState(false)
+  const [btnVisible, setBtnVisible] = useState(false)
+
+  useEffect(() => {
+    // Fade in quote after short delay
+    setTimeout(() => setVisible(true), 300)
+    // Show button after quote appears
+    setTimeout(() => setBtnVisible(true), 2000)
+  }, [])
+
+  return (
+    <div className="splash-container">
+      <div className="splash-bg-grid" />
+      <div className="splash-content">
+        <div className={`splash-quote ${visible ? 'splash-visible' : ''}`}>
+          <span className="splash-lock">🔒</span>
+          <p className="splash-text">
+            Stop distractions,<br />
+            <span className="splash-red">fulfill your dreams.</span>
+          </p>
+          <div className="splash-blink-bar" />
+        </div>
+        <button
+          className={`splash-btn ${btnVisible ? 'splash-btn-visible' : ''}`}
+          onClick={onNext}
+        >
+          Enter →
+        </button>
+      </div>
+      <style>{`
+        .splash-container {
+          position: fixed;
+          inset: 0;
+          background: #080808;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+        }
+        .splash-bg-grid {
+          position: fixed;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(239,68,68,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(239,68,68,0.04) 1px, transparent 1px);
+          background-size: 40px 40px;
+        }
+        .splash-content {
+          position: relative;
+          z-index: 1;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 3rem;
+        }
+        .splash-quote {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 1s ease, transform 1s ease;
+        }
+        .splash-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .splash-lock {
+          font-size: 3rem;
+          display: block;
+          margin-bottom: 1.5rem;
+          animation: splashPulse 2s ease-in-out infinite;
+        }
+        @keyframes splashPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.12); }
+        }
+        .splash-text {
+          font-family: 'Syne', sans-serif;
+          font-size: clamp(2rem, 5vw, 3.5rem);
+          font-weight: 800;
+          color: #fff;
+          line-height: 1.2;
+          letter-spacing: -2px;
+        }
+        .splash-red {
+          color: #ef4444;
+        }
+        .splash-blink-bar {
+          width: 3px;
+          height: 3.5rem;
+          background: #ef4444;
+          margin: 1.5rem auto 0;
+          animation: splashBlink 1s step-end infinite;
+        }
+        @keyframes splashBlink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0; }
+        }
+        .splash-btn {
+          opacity: 0;
+          transform: translateY(10px);
+          transition: opacity 0.8s ease, transform 0.8s ease;
+          background: transparent;
+          border: 1px solid #333;
+          color: #666;
+          font-family: 'Space Mono', monospace;
+          font-size: 0.85rem;
+          letter-spacing: 3px;
+          text-transform: uppercase;
+          padding: 0.9rem 2.5rem;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+        .splash-btn-visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .splash-btn:hover {
+          border-color: #ef4444;
+          color: #ef4444;
+        }
+      `}</style>
     </div>
   )
 }
