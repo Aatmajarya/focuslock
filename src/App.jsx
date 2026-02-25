@@ -2628,7 +2628,7 @@ function SplashScreen({ onNext }) {
             Stop distractions,<br />
             <span className="splash-red">fulfill your dreams.</span>
           </p>
-          <div className="splash-blink-bar" />
+
         </div>
         <button
           className={`splash-btn ${btnVisible ? 'splash-btn-visible' : ''}`}
@@ -2684,6 +2684,8 @@ function SplashScreen({ onNext }) {
           50% { transform: scale(1.12); }
         }
         .splash-text {
+          animation: splashBlink 1.5s ease-in-out infinite;
+          animation: splashBlink 1.8s ease-in-out infinite;
           font-family: 'Syne', sans-serif;
           font-size: clamp(2rem, 5vw, 3.5rem);
           font-weight: 800;
@@ -2694,16 +2696,9 @@ function SplashScreen({ onNext }) {
         .splash-red {
           color: #ef4444;
         }
-        .splash-blink-bar {
-          width: 3px;
-          height: 3.5rem;
-          background: #ef4444;
-          margin: 1.5rem auto 0;
-          animation: splashBlink 1s step-end infinite;
-        }
         @keyframes splashBlink {
           0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+          50% { opacity: 0.15; }
         }
         .splash-btn {
           opacity: 0;
